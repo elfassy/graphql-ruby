@@ -120,7 +120,7 @@ describe GraphQL::Schema::InputObject do
     end
   end
 
-  describe "#to_h" do
+  describe "quacks like a hash" do
     module InputObjectToHTest
       class TestInput1 < GraphQL::Schema::InputObject
         graphql_name "TestInput1"
@@ -139,16 +139,27 @@ describe GraphQL::Schema::InputObject do
       TestInput2.to_graphql
     end
 
+    let(:arg_values) { {a: 1, b: 2, c: { d: 3, e: 4 }} }
+    let(:input_object) { InputObjectToHTest::TestInput2.new(arg_values, context: nil, defaults_used: Set.new) }
+
     it "returns a symbolized, aliased, ruby keyword style hash" do
-      arg_values = {a: 1, b: 2, c: { d: 3, e: 4 }}
-
-      input_object = InputObjectToHTest::TestInput2.new(
-        arg_values,
-        context: nil,
-        defaults_used: Set.new
-      )
-
       assert_equal({ a: 1, b: 2, input_object: { d: 3, e: 4 } }, input_object.to_h)
+    end
+
+    it "can be accessed like a hash using []" do
+      assert_equal(1, input_object[:a])
+      assert_equal(3, input_object[:input_object][:d])
+    end
+
+    it "can be accessed like a hash using dig" do
+      if RUBY_VERSION >= '2.3.0'
+        assert_equal(1, input_object.dig(:a))
+        assert_equal(3, input_object.dig(:input_object, :d))
+      else
+        assert_raises NoMethodError do
+          input_object.dig(:input_object, :d)
+        end
+      end
     end
   end
 end

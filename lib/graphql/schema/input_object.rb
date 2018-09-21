@@ -11,6 +11,7 @@ module GraphQL
         @arguments = self.class.arguments_class.new(values, context: context, defaults_used: defaults_used)
         # Symbolized, underscored hash:
         @ruby_style_hash = @arguments.to_kwargs
+
         # Apply prepares, not great to have it duplicated here.
         self.class.arguments.each do |name, arg_defn|
           ruby_kwargs_key = arg_defn.keyword
@@ -27,7 +28,7 @@ module GraphQL
       attr_reader :arguments
 
       # Ruby-like hash behaviors, read-only
-      def_delegators :@ruby_style_hash, :keys, :values, :each, :map, :any?, :empty?
+      def_delegators :@ruby_style_hash, :keys, :values, :each, :map, :any?, :empty?, :dig
 
       def to_h
         @ruby_style_hash.inject({}) do |h, (key, value)|
